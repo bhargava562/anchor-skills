@@ -51,12 +51,12 @@ When managing dozens of AI skills across multiple domains, unstructured prompt w
 
 $$\text{Effective Task} = \text{Domain Skill (Resume)} + \text{Reusable Sub-Skill (English Writing)} + \text{Scoped Memory}$$
 
-* **Instruction Practice**: `english-writing` is authored once as an independent skill. It is reused by:
+* **Instruction Practice**: `english-writing` is authored once as an independent language capability. It is reused by multiple consumers:
   ```text
-  english-writing (Skill)
-  ▲       ▲       ▲       ▲
-  │       │       │       │
-  Resume  Email  LinkedIn Reports
+  resume-generator   ──────────────► english-writing (Language Capability)
+  email-writing      ──────────────► english-writing
+  linkedin-writing   ──────────────► english-writing
+  report-writing     ──────────────► english-writing
   ```
 
 ### 1.4 Polymorphism & Portability

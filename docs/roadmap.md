@@ -27,8 +27,10 @@ graph LR
 * **Objective**: Build the foundational independent reusable skill (`english-writing`) and the domain consumer skill (`resume-generator`), proving cross-skill composition and DRY without prompt duplication.
 * **Deliverables**:
   * **Skill 1 (`skills/english-writing/`)**:
-    * `SKILL.md`: 10-step correction workflow preserving factual meaning while fixing syntax, tense, and voice.
-    * `references/grammar-rules.md`: Comprehensive passive rules lookup.
+    * `SKILL.md`: Behavioral operating guide with portable frontmatter, 4 modes, meaning invariants, and 5-tier priority hierarchy.
+    * `references/`: Modular references (`sentence-structure.md`, `verb-system.md`, `professional-writing.md`).
+    * `examples/`: Realistic before-and-after benchmark pairs.
+    * `tests/`: TDD pressure test scenarios (P01 to P05).
   * **Skill 2 (`skills/resume-generator/`)**:
     * `SKILL.md`: Master workflow referencing `english-writing` in Step 5 before finalizing text.
     * `config.yaml`: Visual layout tokens (1-page 2-col default, 1-col override, typography, margins).

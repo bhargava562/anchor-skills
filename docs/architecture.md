@@ -78,20 +78,18 @@ To keep skills clean, maintainable, and token-efficient, we enforce an explicit 
 When a capability is needed across multiple domains (such as writing clear, grammatically correct English), it is structured as an **independent reusable skill**.
 
 ### Strict One-Way Dependency
-Dependencies in Anchor Skills must flow in one direction:
+Dependencies in Anchor Skills must flow in one direction from consumer to required capability:
 
 ```text
-                      english-writing (Skill)
-                      ▲       ▲       ▲       ▲
-                      │       │       │       │
-                      │ (used)│       │       │
-                      │       │       │       │
-               resume-generator  email   linkedin  reports
+resume-generator   ──────────────► english-writing (Language Capability)
+email-writing      ──────────────► english-writing
+linkedin-writing   ──────────────► english-writing
+report-writing     ──────────────► english-writing
 ```
 
-* `resume-generator` requires $\rightarrow$ `english-writing`.
-* `english-writing` has **zero knowledge** of `resume-generator`. It remains completely decoupled and reusable across future skills (`email-writing`, `linkedin-writing`, `cover-letter`).
-* **DRY Guarantee**: Grammar and linguistic rules are maintained in exactly one place (`english-writing/references/grammar-rules.md`), never copy-pasted into multiple domain skills.
+* Consumers request `english-writing`.
+* `english-writing` knows nothing about those consumers.
+* **DRY Guarantee**: Grammar and linguistic rules are maintained in exactly one place, never copy-pasted into multiple domain skills.
 
 ### Shallow Dependency Chains
 To prevent token bloat and ensure the AI does not lose track of the primary goal, skill chains must remain **shallow** (generally 1 level deep):
