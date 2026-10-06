@@ -1,105 +1,93 @@
-# Anchor Core — Phased Implementation Roadmap
+# Anchor Skills — Phased Implementation Roadmap
 
-Anchor Core is developed incrementally in disciplined, testable milestones. We do not attempt to build the entire system at once. Each phase proves a critical architectural concept before expanding scope.
+This document outlines the disciplined, phased roadmap for building, organizing, and extending **Anchor Skills** as a modular, provider-independent skill library.
 
 ---
 
-## 1. Overview of Phases
+## 1. Roadmap Overview
 
 ```mermaid
 graph LR
-    P1[Phase 1: Resume Generator] --> P2[Phase 2: External Skill + Overlay]
+    P1[Phase 1: Resume Skill Package] --> P2[Phase 2: Shared Skills & Overlays]
     P2 --> P3[Phase 3: Provider Adapters]
-    P3 --> P4[Phase 4: Notion Memory]
-    P4 --> P5[Phase 5: Capability Engine]
-    P5 --> P6[Phase 6: Multi-Tier Validation]
-    P6 --> P7[Phase 7: Cache & Memoisation]
+    P3 --> P4[Phase 4: Notion Brain Linking]
+    P4 --> P5[Phase 5: Capability Declarations]
+    P5 --> P6[Phase 6: Quality & Validation Rubrics]
+    P6 --> P7[Phase 7: Provenance & Metadata]
     P7 --> P8[Phase 8: Emergency Medpack]
-    P8 --> P9[Phase 9: Additional Skills]
-    P9 --> P10[Phase 10: Automation & Cloud]
+    P8 --> P9[Phase 9: Additional Domain Skills]
+    P9 --> P10[Phase 10: Catalog Automation]
 ```
 
 ---
 
 ## 2. Phase-by-Phase Deliverables
 
-### Phase 1: Resume Generator (Current Active Milestone)
-* **Goal**: Build one high-quality, provider-neutral Resume Generator Skill while proving the foundational architecture.
-* **Key Deliverables**:
-  * Input schema validation (JD, Candidate Memory, Old Resume, Layout overrides).
-  * Decoupled Content Engine vs. Layout Engine.
-  * Central design tokens in `config/resume.yaml` (typography, margins, column ratios).
-  * Swappable `PDFRenderer` interface with ReportLab implementation.
-  * One-Analysis / One-Fix pipeline with consolidated Issue Manifest.
-  * Guaranteed 1-page output (2-column default, 1-column override).
-  * ATS extractability validation and zero-fabrication evidence mapping.
-* **Scope Discipline**: No cloud runtime, no complex database, no automated multi-provider compiler.
+### Phase 1: Resume Generator Skill Package (Active Milestone)
+* **Objective**: Build the first complete, production-grade skill package proving the progressive disclosure instruction architecture.
+* **Deliverables**:
+  * `skills/resume-generator/SKILL.md` (Workflow coordinator, input/output schemas, hard rules).
+  * `skills/resume-generator/config.yaml` (1-page 2-col default, 1-col override, typography tokens).
+  * Modular references in `references/` (`jd-analysis.md`, `content.md`, `grammar.md`, `layout.md`, `validation.md`).
+  * Real-world benchmark examples in `examples/`.
+  * Dependency pointers in `links/`.
 
-### Phase 2: External Skill + Personal Overlay
-* **Goal**: Prove that mature external skills (such as `obra/superpowers`) can be consumed directly as upstream dependencies without cloning or modifying their repositories.
-* **Key Deliverables**:
-  * Overlay syntax and parser (`ADD`, `REPLACE`, `RESTRICT`, `PRIORITISE`).
-  * Deterministic conflict resolution hierarchy (Safety > Hard Constraints > Provider Limits > Defaults).
-  * Personal engineering overlays (e.g., systematic debugging overlay that enforces root-cause explanation before code edits).
-* **Scope Discipline**: Deterministic rule composition only; no heuristic AI conflict engine.
+### Phase 2: Shared Knowledge & External Skill Overlays
+* **Objective**: Establish the `shared/` library and prove that external skills can be customized via overlays without cloning or forking.
+* **Deliverables**:
+  * Shared engineering standards in `shared/engineering/` (`oop.md`, `solid.md`, `dry.md`).
+  * Shared writing standards in `shared/writing/` (`active-voice.md`, `conciseness.md`).
+  * Integration of `obra/superpowers` via personal overlays (`ADD`, `REPLACE`, `RESTRICT`, `PRIORITISE`).
 
-### Phase 3: Provider Adapter & Portability
-* **Goal**: Prove that the universal skill contract can be executed across distinct AI environments without altering the core skill definition.
-* **Key Deliverables**:
-  * Provider research dossiers (Claude, Gemini, OpenAI).
-  * Adapters for Claude Code / Desktop (`.claude/skills`).
-  * Adapters for Gemini Antigravity (`.gemini/skills`).
-  * Verification that skill definitions execute identically across both targets.
+### Phase 3: Provider Adapters & Portability
+* **Objective**: Package universal skills for distinct AI environments without modifying the underlying skill markdown.
+* **Deliverables**:
+  * Claude Adapter: Packaging skills for Claude Code / Desktop (`adapters/claude/`).
+  * Gemini Adapter: Packaging skills for Gemini / Antigravity (`adapters/gemini/`).
+  * OpenAI Adapter: Formatting skills for OpenAI Custom GPTs / Assistants (`adapters/openai/`).
 
-### Phase 4: Optional Memory Integration (Anchor-Brain)
-* **Goal**: Connect the personal memory layer (Notion) to skills via a clean, abstract `MemoryProvider` interface.
-* **Key Deliverables**:
-  * `MemoryProvider` interface and `NotionMemoryAdapter`.
-  * Scoped query engine (`identity.*`, `experience.backend`, `projects.relevant`).
-  * Enforcement of visibility boundaries (L0–L4) at retrieval time.
-  * Principle of least privilege: zero ambient context leakage.
+### Phase 4: Notion Brain Linking & Scoped Queries
+* **Objective**: Define formal prompt protocols for querying the user's existing Notion Brain with minimum context and strict visibility tiers.
+* **Deliverables**:
+  * Scoped retrieval guides (`identity.education`, `experience.backend`, `projects.relevant`).
+  * Enforcement of visibility boundaries (L0 Public, L1 Professional, L2 Private, L3 Restricted, L4 Retired).
+  * Zero ambient context leakage: prompt templates that request only task-relevant evidence.
 
-### Phase 5: Dependency & Capability Resolution
-* **Goal**: Formalize automated capability checking and dependency verification before task execution.
-* **Key Deliverables**:
-  * Automated capability validator (`memory: optional/required`, `web: optional`, `codebase: optional`).
-  * Environment prerequisite checks (Python, ReportLab, CLI tools).
-  * Graceful degradation paths when optional capabilities are offline.
+### Phase 5: Capability Declarations & Progressive Resolution
+* **Objective**: Standardize frontmatter capability schemas across all skills.
+* **Deliverables**:
+  * Standardized declarations: `memory: required/optional/forbidden`, `web: optional`, `tools: [filesystem, terminal]`.
+  * Instructions for AI fallback behavior when optional tools (e.g., web search) are unavailable.
 
-### Phase 6: Multi-Tier Validation System
-* **Goal**: Formalize mechanical, semantic, and security validation into an extensible test harness.
-* **Key Deliverables**:
-  * Deterministic structural validators (page count, margin overflow, PDF corruption).
-  * Semantic linting (grammar, tense consistency, action verb impact).
-  * Evidence provenance validator (every resume bullet maps to a verified Notion record).
-  * Redaction audit tool (ensuring L2/L3 data never enters public outputs).
+### Phase 6: Skill Quality & Validation Rubrics
+* **Objective**: Establish pre-flight verification rubrics that prevent AI output drift.
+* **Deliverables**:
+  * Deterministic validation checklists for each domain skill.
+  * Self-correction protocols: guiding the AI to audit its own output against constraints before presenting deliverables.
 
-### Phase 7: Artifact Cache & Memoisation
-* **Goal**: Prevent redundant, expensive LLM calls by introducing input-aware caching.
-* **Key Deliverables**:
-  * Artifact metadata schema (`input_hash`, `memory_version`, `skill_version`, `template_version`).
-  * Local filesystem artifact store with metadata indexing.
-  * Re-generation short-circuiting when inputs and dependencies are unchanged.
+### Phase 7: Provenance & Artifact Metadata
+* **Objective**: Establish structured headers and provenance audit blocks for generated artifacts.
+* **Deliverables**:
+  * Provenance schemas: tracking which skill version, Notion evidence records, and layout configurations produced an artifact.
+  * Audit blocks: logging assumptions, omitted content, or unresolved conflicts.
 
 ### Phase 8: Emergency Medpack (Degraded Fallback)
-* **Goal**: Provide a lightweight, portable fallback workflow when operating in restricted environments (e.g., mobile devices, offline, missing dependencies).
-* **Key Deliverables**:
-  * Zero-dependency text/markdown resume and workflow generator.
-  * Explicit assumption and missing-evidence logging.
-  * Post-recovery reconciliation guide to sync changes back to desktop/Notion.
+* **Objective**: Provide ultra-lightweight, zero-dependency emergency skills for mobile devices or restricted offline environments.
+* **Deliverables**:
+  * Single-file emergency skills requiring zero external references or tools.
+  * Graceful degradation paths that output clean Markdown when full layout formatting is unavailable.
 
-### Phase 9: Additional Personal Skills
-* **Goal**: Expand the Anchor Skills library across professional and technical domains.
-* **Candidate Skills**:
-  * Cover Letter Generator (paired with Resume Skill).
-  * LinkedIn Content & Profile Sync.
-  * Hackathon Opportunity & Feasibility Evaluator.
-  * Technical Deep-Dive & Research Digest.
-  * Code Review & Architecture Critique (with personal overlay).
+### Phase 9: Domain Skills Expansion
+* **Objective**: Expand the Anchor Skills library across professional and technical domains.
+* **Deliverables**:
+  * `skills/cover-letter/`: Paired companion to the Resume Skill.
+  * `skills/linkedin-writer/`: Professional profile and technical post authoring.
+  * `skills/hackathon-evaluator/`: Fast opportunity assessment, idea validation, and tech stack scoping.
+  * `skills/technical-research/`: Deep-dive literature and documentation synthesis.
+  * `skills/architecture-review/`: Systematic design critique applying shared OOP/SOLID principles.
 
-### Phase 10: Automation, Cloud & Future Management
-* **Goal**: Optional scheduled workflows, notifications, and application tracking.
-* **Candidate Capabilities**:
-  * n8n integration for scheduled job alerts.
-  * Application status tracking and follow-up reminders.
-  * Automated periodic sync between Notion brain and local cache.
+### Phase 10: Catalog Automation & Maintenance
+* **Objective**: Lightweight maintenance utilities for repository organization.
+* **Deliverables**:
+  * Automated index generator updating `README.md` from skill metadata.
+  * Broken link and dependency reference checker across markdown files.

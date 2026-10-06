@@ -1,163 +1,191 @@
-# Anchor Core (skill-shelf)
+# Anchor Skills (`skill-shelf`)
 
-> **Provider-independent personal memory, reusable skill workflows, and execution adapters.**
-
----
-
-## 1. Project Overview
-
-**Anchor Core** is an architectural foundation designed to separate personal context, task workflows, and AI provider implementations.
-
-Modern AI usage is fragmented: developers and professionals work across Claude, OpenAI/ChatGPT, Gemini, Kimi, OpenClaw, and specialized agent environments. Each environment defines its own skill format, directory structure, tool integrations, and execution nuances. Consequently, users are forced to repeatedly restate who they are, copy-paste instructions, duplicate external skills, and grapple with vendor lock-in.
-
-Anchor Core solves this with the **Anchor-Brain + Anchor Skills** paradigm:
-
-* **Anchor-Brain**: A provider-independent personal memory and context layer (backed by Notion). Answers *"What is true about Bhargava?"*
-* **Anchor Skills**: A provider-independent reusable workflow and skill library (stored in Git / GitHub). Answers *"How should this type of task be performed?"*
-* **Provider Adapters**: Thin, swappable translation layers for specific execution environments (Claude, Gemini, OpenAI, etc.). Answers *"How does this environment execute the skill?"*
-
-> [!IMPORTANT]
-> Anchor Core is **not** a custom autonomous runtime, not an always-running daemon, not a vector database, and not a replacement for native AI platforms. Native AI environments perform the actual execution; Anchor Core provides the structured definitions, overlays, and adapters.
+> **A passive, provider-independent library of modular AI skills, workflows, and personal overlays.**
 
 ---
 
-## 2. Core Architectural Pillars
+## 1. Project Identity & Purpose
 
-```mermaid
-graph TD
-    UserTask["User Task / Prompt"] --> Discovery["Skill Discovery & Resolution"]
-    Discovery --> EffectiveSkill["Effective Skill Composition"]
-    
-    subgraph Composition ["Skill Composition Layer"]
-        BaseSkill["Base Skill (e.g. Superpowers)"]
-        Overlay["Personal Overlay (Rules / Style)"]
-        Policy["Global Policies & Constraints"]
-        BaseSkill --> EffectiveSkill
-        Overlay --> EffectiveSkill
-        Policy --> EffectiveSkill
-    end
+**Anchor Skills** is a portable collection of reusable AI skills and task workflows stored as clean, structured markdown packages on GitHub.
 
-    EffectiveSkill --> CapCheck{"Capability Check"}
-    
-    CapCheck -->|Optional| Memory["Personal Memory (Notion / Scoped Context)"]
-    CapCheck -->|Optional| Web["Web Research (Targeted verification)"]
-    CapCheck -->|Optional| Codebase["Workspace / Codebase"]
+When interacting with modern AI environments (Claude, Gemini, OpenAI/ChatGPT, Kimi, etc.), a user repeatedly has to re-explain:
+* Who they are and their background
+* What rules, quality standards, and constraints the AI must follow
+* How to approach recurring tasks (resumes, coding, code reviews, technical research, brainstorming)
 
-    Memory --> Adapter["Provider Adapter"]
-    Web --> Adapter
-    Codebase --> Adapter
-    EffectiveSkill --> Adapter
+Anchor Skills solves this fragmentation by treating skills as **passive, modular knowledge packages**:
 
-    subgraph Providers ["Target AI Provider"]
-        Adapter --> Claude["Claude Code / Desktop"]
-        Adapter --> Gemini["Gemini / Antigravity"]
-        Adapter --> OpenAI["OpenAI / Custom Agents"]
-    end
-
-    Claude --> Execution["Native Provider Execution"]
-    Gemini --> Execution
-    OpenAI --> Execution
-
-    Execution --> Validation["Deterministic & Semantic Validation"]
-    Validation --> Output["Final Verified Output"]
-    Output --> Cache["Artifact / Cache Metadata (Future)"]
+```text
+┌──────────────┐
+│    NOTION    │
+│ (Already     │  "What is true about Bhargava?"
+│   built)     │  Personal Memory / Context Layer
+└──────┬───────┘
+       │ (optional query on demand)
+       ▼
+┌──────────────┐
+│ ANCHOR SKILL │  "How should this task be performed?"
+│   LIBRARY    │  Modular, portable instructions & workflows
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│    GITHUB    │  Passive storage, catalog, and version history
+│ (Repository) │  (Does NOT run code or execute a server)
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│ AI PROVIDER  │  The actual execution engine
+│ Claude/Gemini│  Discovers and reads the required skill,
+│ OpenAI, etc. │  follows its workflow, and uses native tools
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│    OUTPUT    │  Verified, high-quality task deliverable
+└──────────────┘
 ```
 
-1. **Separation of Concerns**: Personal facts are completely decoupled from task instructions, and task instructions are decoupled from provider execution mechanics.
-2. **Base + Overlay Composition**: Upstream external skills (such as `obra/superpowers`) are reused directly as dependencies without forking or cloning. Personal customizations are applied deterministically via overlays (`ADD`, `REPLACE`, `RESTRICT`, `PRIORITISE`).
-3. **Capabilities are Explicit & Optional**: Memory, web access, and codebase access are opt-in capabilities. A skill must declare what it needs (`forbidden`, `optional`, or `required`) and request minimum scoped context (`identity.education`, `experience.backend`).
-4. **Clean OOP Principles**: System design adheres to Abstraction, Encapsulation, Dependency Inversion, and Interface Segregation (e.g., PDF generation abstracted behind a `PDFRenderer` interface).
-5. **One-Analysis / One-Fix Principle**: Avoid iterative multi-turn trial-and-error generation. Perform one comprehensive analysis, produce a complete issue manifest, and execute one consolidated correction pass before final validation.
+> [!IMPORTANT]
+> **Anchor Skills is NOT an application or a custom runtime.**
+> We are **not** building a Python/Java backend, a PDF-generation server, a custom vector DB, or a middleware agent.
+> **GitHub is simply a passive skill shelf.** The native AI provider is the runtime that discovers, loads, and executes the markdown instructions.
 
 ---
 
-## 3. Documentation Index
+## 2. Why OOP, SOLID, and DRY for Skill Instructions?
 
-Detailed architectural specifications, engineering principles, and phase roadmaps are organized inside the [docs/](file:///d:/skill-shelf/docs) directory:
+In Anchor Skills, **Object-Oriented Programming (OOP), SOLID, and DRY principles are applied to organize instruction sets and documentation**—not to build software applications.
+
+Without software engineering discipline, AI knowledge repos quickly turn into:
+* A giant, noisy master prompt where every task loads irrelevant rules and wastes context tokens.
+* Copied-and-pasted external skills that become impossible to maintain.
+* Conflicting instructions scattered across random markdown files.
+
+Anchor Skills applies engineering rigor to prompt and skill design:
+
+| Principle | Meaning in Skill Instruction Architecture |
+| :--- | :--- |
+| **Abstraction** | The main `SKILL.md` defines *what* the task does, its workflow, triggers, inputs, and outputs—without dumping hundreds of lines of reference minutiae into one file. |
+| **Encapsulation & Progressive Disclosure** | Each skill is a self-contained folder. Deep heuristics live in `references/`, examples in `examples/`, and pointers in `links/`. The AI loads only what is necessary for the current task. |
+| **Composition & Overlays** | External skills (e.g., `obra/superpowers`) are reused directly as dependencies. Personal rules are attached as lightweight **overlays** (`ADD`, `REPLACE`, `RESTRICT`, `PRIORITISE`) rather than forking upstream files. |
+| **Polymorphism & Portability** | The core skill instructions remain provider-agnostic. Provider-specific delivery files (Claude commands, Gemini builtins) adapt the skill without rewriting the core workflow. |
+| **Dependency Inversion** | Skills declare the capabilities they need (`memory: optional`, `web: optional`, `tools: [filesystem]`). They never hardcode vendor-specific APIs or concrete storage systems. |
+| **DRY (Don't Repeat Yourself)** | Shared knowledge (e.g., core OOP principles, grammar standards, research guidelines) is stored once in shared reference skills and linked via pointers, never duplicated across skills. |
+| **Single Responsibility (SRP)** | Each document has one distinct purpose: `SKILL.md` guides execution flow; `references/grammar.md` defines linguistic rules; `references/jd-analysis.md` classifies job description terms. |
+
+---
+
+## 3. Skill Tree & Progressive Disclosure
+
+The repository functions as a navigable knowledge tree. The AI does **not** ingest the entire repository into its prompt:
+
+```text
+                     ANCHOR SKILLS
+                          │
+                    Skill Catalog
+                          │
+         ┌────────────────┼────────────────┐
+         ▼                ▼                ▼
+  Resume Generator    Hackathon         Coding
+         │
+         ├── SKILL.md (Core Workflow & Input/Output Contracts)
+         ├── references/
+         │   ├── jd-analysis.md (Taxonomy of skills & expectations)
+         │   ├── content.md     (Action + Technical Work + Result)
+         │   ├── grammar.md     (Tense, active voice, parallel rules)
+         │   └── layout.md      (Geometry, vertical rhythm tokens)
+         ├── examples/
+         └── links/
+             ├── shared-skills.md   (Pointers to common principles)
+             └── external-skills.md (Pointers to Superpowers, etc.)
+```
+
+When a user asks:
+> *"Create a resume for this Stripe Job Description."*
+
+The AI:
+1. Discovers and opens `skills/resume-generator/SKILL.md`.
+2. Inspects its declared needs (requires JD + candidate memory; web search optional; codebase not needed).
+3. Reads only the necessary reference documents (e.g., `references/jd-analysis.md`, `references/grammar.md`) when executing those specific steps.
+4. Leaves unrelated domains (coding, hackathons, LinkedIn) completely untouched.
+
+---
+
+## 4. Documentation Index
+
+The full system architecture, instruction design rules, and phase roadmaps are documented in the [docs/](file:///d:/skill-shelf/docs) directory:
 
 | Document | Description |
 | :--- | :--- |
-| [docs/architecture.md](file:///d:/skill-shelf/docs/architecture.md) | Comprehensive system architecture: layers, capability resolution, memory scoping (L0–L4), overlay operations, adapters, and medpack fallback. |
-| [docs/design_principles.md](file:///d:/skill-shelf/docs/design_principles.md) | OOP mental models, engineering philosophy, anti-vibe-coding rules, research discipline, and the 18 fundamental Anchor rules. |
-| [docs/phase_1_resume_generator.md](file:///d:/skill-shelf/docs/phase_1_resume_generator.md) | Complete specification for the first vertical slice: input contracts, ATS guidelines, JD analysis, evidence mapping, layout engines, PDF renderers, and test matrix. |
-| [docs/roadmap.md](file:///d:/skill-shelf/docs/roadmap.md) | Incremental 10-phase delivery roadmap from Phase 1 (Resume Generator) through Phase 10 (Future Automation & Cloud). |
+| [docs/architecture.md](file:///d:/skill-shelf/docs/architecture.md) | Passive skill library architecture, Notion brain integration, skill tree hierarchy (Levels 0–4), progressive disclosure, and provider adapters. |
+| [docs/design_principles.md](file:///d:/skill-shelf/docs/design_principles.md) | How OOP, SOLID, DRY, and clean architecture govern instruction organization, prompt tokens, and reference pointers. |
+| [docs/phase_1_resume_generator.md](file:///d:/skill-shelf/docs/phase_1_resume_generator.md) | Complete specification for Phase 1: the `resume-generator` skill package, reference documents, 1-analysis / 1-fix workflow, and layout tokens. |
+| [docs/roadmap.md](file:///d:/skill-shelf/docs/roadmap.md) | Incremental delivery roadmap for building, organizing, and linking skills across the repository. |
 
 ---
 
-## 4. Current Milestone: Phase 1 — Resume Generator
+## 5. Current Milestone: Phase 1 — Resume Generator Skill
 
-Anchor Core is developed incrementally. The immediate milestone is **Phase 1: Resume Generator Skill**:
+Phase 1 focuses on designing and validating the first complete, self-contained skill package: **Resume Generator**.
 
 ```text
 Job Description (JD)
        +
-Candidate Information & Evidence (Notion / Memory)
+Candidate Memory (from Notion Brain)
        +
-Optional Historical Resume
+Optional Old Resume (Historical artifact)
        +
 Layout Configuration (1-page 2-col default / 1-col override)
        │
        ▼
-Resume Generator Skill
+skills/resume-generator/SKILL.md
        │
-       ├── Deterministic JD & Evidence Mapping (No fabrication)
-       ├── Content Engine vs. Layout Engine separation
-       ├── Central Typography & Spacing Token System
-       ├── Pluggable PDFRenderer interface (e.g. ReportLab)
-       └── Multi-tier Validation (Grammar, ATS, Layout, Overflow)
+       ├── Progressive reference loading (references/jd-analysis.md, references/grammar.md)
+       ├── One-Analysis Pass (Generates consolidated Issue Manifest)
+       ├── One-Correction Pass (Direct targeted fixes)
+       ├── Zero-Fabrication Rule (Candidate evidence outranks all inference)
+       └── Measurable ATS & Layout Guidelines (references/layout.md)
        │
        ▼
-High-Quality, Professional 1-Page PDF
+High-Quality, Professional 1-Page Resume
 ```
-
-For the step-by-step implementation guide, contracts, and test cases, read [docs/phase_1_resume_generator.md](file:///d:/skill-shelf/docs/phase_1_resume_generator.md).
 
 ---
 
-## 5. Repository Structure
+## 6. Repository Layout (Target Structure)
 
 ```text
 skill-shelf/
-├── README.md                           # Project index and architecture overview
-├── docs/                               # System specifications and engineering docs
-│   ├── architecture.md                 # System architecture and data flow
-│   ├── design_principles.md            # OOP mental models and operating rules
-│   ├── phase_1_resume_generator.md     # Phase 1 vertical slice specification
-│   └── roadmap.md                      # 10-phase project evolution roadmap
-└── anchor-skills/                      # Skills library (Phase 1 structure)
-    ├── README.md                       # Skills directory overview
-    ├── skill/
-    │   └── resume/
-    │       └── SKILL.md                # Declarative resume skill definition
-    ├── config/
-    │   └── resume.yaml                 # Configuration, layout, and typography tokens
-    ├── references/
-    │   └── resume/                     # Detailed domain guidance & checklists
-    ├── tests/
-    │   └── resume/                     # Structural, grammar, and layout test suite
-    └── providers/
-        └── claude/                     # Claude-specific adapter and packaging
+├── README.md                           # Root catalog & library architecture
+├── docs/                               # System architecture & design guidelines
+│   ├── architecture.md
+│   ├── design_principles.md
+│   ├── phase_1_resume_generator.md
+│   └── roadmap.md
+├── shared/                             # Level 1: Shared reusable knowledge & rules
+│   ├── engineering/
+│   │   ├── oop.md
+│   │   ├── solid.md
+│   │   └── dry.md
+│   └── writing/
+│       ├── grammar.md
+│       └── active-voice.md
+├── skills/                             # Level 2: Domain skill packages
+│   └── resume-generator/               # Phase 1 skill package
+│       ├── SKILL.md
+│       ├── config.yaml
+│       ├── references/
+│       │   ├── jd-analysis.md
+│       │   ├── content.md
+│       │   ├── grammar.md
+│       │   ├── layout.md
+│       │   └── validation.md
+│       ├── examples/
+│       └── links/
+└── adapters/                           # Level 4: Provider-specific delivery definitions
+    ├── claude/
+    ├── gemini/
+    └── openai/
 ```
-
----
-
-## 6. The 18 Cardinal Rules
-
-1. **Memory is optional** — never load memory by default.
-2. **Notion is the personal-memory store**, not the skill code repository.
-3. **GitHub is the reusable skill source**, not the personal data store.
-4. **External skills should be reused**, never copied or forked unnecessarily.
-5. **Personal customization should be an overlay**, keeping base skills clean.
-6. **Provider-specific behavior belongs in adapters**, not universal skills.
-7. **Implementations must remain replaceable** behind stable interfaces.
-8. **Skills must explicitly declare their dependencies and capabilities**.
-9. **Validation is strictly decoupled from generation**.
-10. **Security is an architectural boundary (L0–L4)**, not prompt phrasing.
-11. **Do not fabricate personal information** — zero tolerance for unverified claims.
-12. **Use the minimum required context** (least privilege).
-13. **Perform one complete analysis before correction** (no endless regeneration loops).
-14. **Avoid repeated semantic regeneration** — use deterministic logic where possible.
-15. **Do not build a universal runtime prematurely**.
-16. **Do not over-engineer Phase 1** — build the minimal vertical slice to prove the contract.
-17. **Understand every component implemented** (Anti-Vibe-Coding).
-18. **Research provider behavior from official docs**, never guess.
