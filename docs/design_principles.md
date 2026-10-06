@@ -11,18 +11,18 @@ When managing dozens of AI skills across multiple domains, unstructured prompt w
 ```text
 ┌────────────────────────────────────────────────────────┐
 │                      ABSTRACTION                       │
-│      SKILL.md defines WHAT to do and the workflow      │
-│      without cluttering the file with deep heuristics  │
+│    Skills expose clean capabilities (e.g. English      │
+│    Writing); consumers do not care how rules work      │
 └───────────────────────────┬────────────────────────────┘
 ┌───────────────────────────▼────────────────────────────┐
 │                     ENCAPSULATION                      │
-│     Self-contained skill folders; deep rules hidden    │
-│     in references/; scoped memory requests only        │
+│     Internal rules stay inside their skill folders;    │
+│     deep heuristics in references/; scoped memory only │
 └───────────────────────────┬────────────────────────────┘
 ┌───────────────────────────▼────────────────────────────┐
 │                      COMPOSITION                       │
-│       Assemble effective instructions: Base Skill      │
-│       + Personal Overlay + Policies + Shared Links     │
+│       Assemble effective capabilities: Resume Skill     │
+│       invokes English Writing sub-skill via pointer    │
 └───────────────────────────┬────────────────────────────┘
 ┌───────────────────────────▼────────────────────────────┐
 │                      POLYMORPHISM                      │
@@ -31,37 +31,43 @@ When managing dozens of AI skills across multiple domains, unstructured prompt w
 └───────────────────────────┬────────────────────────────┘
 ┌───────────────────────────▼────────────────────────────┐
 │                  DEPENDENCY INVERSION                  │
-│       Skills declare generic capabilities (web, memory)│
-│       without hardcoding vendor APIs or concrete tools │
+│       Consumers depend on capability pointers, not      │
+│       hardcoded rules or vendor-specific tools         │
 └────────────────────────────────────────────────────────┘
 ```
 
 ### 1.1 Abstraction
-* **Definition**: A skill file defines the high-level workflow, triggers, inputs, and expected deliverables without embedding hundreds of lines of reference heuristics.
-* **Instruction Practice**: `SKILL.md` outlines the 6-stage resume process (Analyze $\rightarrow$ Map $\rightarrow$ Draft $\rightarrow$ Layout $\rightarrow$ Validate $\rightarrow$ Output). It tells the AI: *"For term classification rules, read `references/jd-analysis.md`."* The workflow remains clean and comprehensible.
+* **Definition**: A skill defines *what* it accomplishes as a reusable capability without forcing consumers to understand its internal mechanisms.
+* **Instruction Practice**: `skills/english-writing/SKILL.md` exposes: *"Produce grammatically correct, active, professional English while preserving factual meaning."* The consumer (`resume-generator`) invokes this capability without needing to know how tense tables or punctuation rules are structured internally.
 
 ### 1.2 Encapsulation & Progressive Disclosure
 * **Definition**: Information is strictly compartmentalized. Supporting knowledge is hidden until the AI actively needs it.
 * **Instruction Practice**: 
-  * A skill package encapsulates its domain knowledge inside `references/`.
+  * Grammar rules are encapsulated inside `skills/english-writing/references/grammar-rules.md`. `resume-generator` does **not** copy or embed them.
   * Memory access is encapsulated into minimal scopes (`identity.education`, `experience.backend`). The skill never receives the user's entire personal history.
 
-### 1.3 Composition
-* **Definition**: Complex behaviors are formed by combining independent, reusable instruction blocks rather than writing monolithic super-prompts:
+### 1.3 Composition & Reusability
+* **Definition**: Powerful capabilities are built by combining independent, focused skills rather than writing monolithic super-prompts:
 
-$$\text{Effective Skill} = \text{Base Skill} + \text{Personal Overlay} + \text{Shared Knowledge Pointers} + \text{Scoped Memory}$$
+$$\text{Effective Task} = \text{Domain Skill (Resume)} + \text{Reusable Sub-Skill (English Writing)} + \text{Scoped Memory}$$
 
-* **Instruction Practice**: Rather than duplicating coding principles inside every skill, the Resume Skill points to `shared/engineering/oop.md` when framing technical achievements.
+* **Instruction Practice**: `english-writing` is authored once as an independent skill. It is reused by:
+  ```text
+  english-writing (Skill)
+  ▲       ▲       ▲       ▲
+  │       │       │       │
+  Resume  Email  LinkedIn Reports
+  ```
 
 ### 1.4 Polymorphism & Portability
 * **Definition**: The same skill package executes predictably across diverse AI environments without modifying the core instruction text.
 * **Instruction Practice**: `skills/resume-generator/SKILL.md` is identical whether run by Claude, Gemini, or OpenAI. The provider's adapter handles discovery and tool invocation; the core instructions remain 100% portable.
 
 ### 1.5 Dependency Inversion Principle (DIP)
-* **Definition**: High-level instructions must depend on abstract capabilities, never on vendor-specific implementations or tools.
+* **Definition**: High-level instructions must depend on abstract capabilities and explicit skill pointers, never on hardcoded vendor APIs or duplicate rules.
 * **Instruction Practice**:
-  * **Correct**: The skill declares `capabilities: { memory: required, web: optional }`.
-  * **Incorrect**: The skill hardcodes `"Make a curl call to the Notion API v2"` or `"Use Claude's bash tool"`.
+  * **Correct**: `resume-generator` declares: `"Execute REQUIRED SUB-SKILL: english-writing"`.
+  * **Incorrect**: `resume-generator` embeds its own duplicate grammar rules or hardcodes vendor tool calls.
 
 ---
 
@@ -77,25 +83,26 @@ graph TD
 ```
 
 ### S — Single Responsibility Principle (SRP)
-* **Rule**: Each document in the skill repository has exactly one reason to change.
-* **Application**:
-  * `SKILL.md`: Coordinates the workflow pipeline.
-  * `references/jd-analysis.md`: Classifies job requirements (technical, responsibility, domain).
-  * `references/grammar.md`: Enforces active voice, tense consistency, and parallel phrasing.
-  * `references/layout.md`: Governs typography hierarchy, margins, and column geometry.
-  * If formatting guidelines change, you update `references/layout.md`. `references/grammar.md` remains untouched.
+* **Rule**: Each document and skill in the repository has exactly one distinct responsibility:
+  * `skills/resume-generator/`: Knows how to analyze JDs, map evidence, plan sections, and format 1-page resumes.
+  * `skills/english-writing/`: Knows how to check grammar, tense, parallel structure, and clarity.
+  * `references/jd-analysis.md`: Classifies job requirements.
+  * `references/layout.md`: Governs typography, margins, and vertical rhythm.
 
 ### O — Open/Closed Principle (OCP)
-* **Rule**: Skills are open for extension (via overlays and layout overrides) but closed for modification (upstream baselines remain untouched).
-* **Application**: When adopting an upstream skill like `superpowers/systematic-debugging`, you do not edit the upstream file. You add an overlay with your personal rules (`ADD: explain root cause before proposing code`).
+* **Rule**: Skills are open for extension (via configuration overrides and overlays) but closed for modification (upstream baselines remain untouched).
+* **Application**: Adding an explicit 1-column layout override changes `config.yaml` without altering the core content workflow.
 
 ### L — Liskov Substitution Principle (LSP)
 * **Rule**: A shared skill or external dependency can be substituted with another compatible skill without breaking the calling workflow.
-* **Application**: If a skill depends on a shared `writing/grammar.md` standard, swapping it for an enhanced `writing/technical-style.md` standard preserves the calling skill's workflow integrity.
+* **Application**: If `english-writing` is enhanced or substituted with an advanced editing skill adhering to the same input/output contract, `resume-generator` continues functioning without edits.
 
 ### I — Interface Segregation Principle (ISP)
 * **Rule**: A skill should never be forced to declare, load, or depend on instructions it does not use.
-* **Application**: A Pure Skill (like JSON Formatter) declares zero capabilities. It is not saddled with memory queries, web browsing rules, or personal identity context.
+* **Application**:
+  * `resume-generator` declares: `memory: required`, `sub_skills: [english-writing]`.
+  * A pure formatting skill declares `memory: forbidden` and `sub_skills: []`.
+  * English writing is loaded on demand, not globally enforced for tasks that do not write prose (e.g., JSON formatting).
 
 ### D — Dependency Inversion Principle (DIP)
 * **Rule**: High-level task workflows depend on capability declarations, leaving native AI environments to supply the concrete tools.
@@ -103,20 +110,42 @@ graph TD
 
 ---
 
-## 3. DRY (Don't Repeat Yourself) in Instruction Systems
+## 3. DRY (Don't Repeat Yourself) Across the Skill Graph
 
 Prompt duplication is a major source of instruction drift and maintenance failure.
 
-* **Anti-Pattern**: Copying the same bullet formula (`Action + Tech + Metric`) into Resume, LinkedIn, Hackathon, and Portfolio skills. If you refine the formula, you have to find and edit 4 different files.
+* **Anti-Pattern**:
+  ```text
+  resume-generator/references/grammar.md
+  email-writing/references/grammar.md
+  linkedin-writing/references/grammar.md
+  cover-letter/references/grammar.md
+  ```
+  Result: 4 duplicate copies, 4 maintenance points, inevitable divergence.
+
 * **Anchor Solution**:
-  * Store the standard in `shared/writing/active-voice.md`.
-  * Skills reference the standard via pointer:
-    > *"Draft accomplishment bullets following `shared/writing/active-voice.md`."*
-  * Updates made in `shared/` immediately enhance every dependent skill.
+  ```text
+  skills/english-writing/references/grammar-rules.md
+  ```
+  All skills point to `english-writing` as a required sub-skill. One rule set; multiple consumers.
 
 ---
 
-## 4. Anti-Vibe-Coding Rules for Skill Authoring
+## 4. Direction of Dependency & Shallow Chains
+
+To maintain stability across the repository:
+
+1. **One-Way Dependency**:
+   * `resume-generator` depends on $\rightarrow$ `english-writing`.
+   * `english-writing` has **zero knowledge** of `resume-generator`.
+2. **Shallow Chains (1 Level Deep)**:
+   * Keep cross-skill dependencies 1 level deep:
+     $$\text{Resume Generator} \rightarrow \text{English Writing}$$
+   * Avoid deeply nested chains 4–5 levels deep ($\text{Resume} \rightarrow \text{Writing} \rightarrow \text{Grammar} \rightarrow \text{Language} \rightarrow \text{Rules}$), which cause models to lose task context.
+
+---
+
+## 5. Anti-Vibe-Coding Rules for Skill Authoring
 
 Skills are engineering assets, not casual chat prompts. All instructions must adhere to the following standards:
 
@@ -126,31 +155,12 @@ Skills are engineering assets, not casual chat prompts. All instructions must ad
    * Instead of *"Write impactful bullets"*, specify:
      $$\text{Bullet} = \text{Past-Tense Action Verb} + \text{Technical Core / Tool} + \text{Quantified Impact / Scale}$$
    * Instead of *"Make it ATS friendly"*, specify:
-     * Extractable vector text only (no image-rendered contact info).
+     * Extractable vector text only (no image-embedded contact info).
      * Standard section headings (`Experience`, `Education`, `Skills`, `Projects`).
      * Zero unverified keyword fabrication.
 4. **Determinism Over Hallucination**:
-   * One-Analysis Pass: Direct the AI to catalog all gaps and issues in an **Issue Manifest** before generating drafts.
-   * One-Correction Pass: Direct the AI to fix all identified issues simultaneously, preventing multi-turn trial-and-error loops.
-
----
-
-## 5. The 10 Learning Questions for Skill Design
-
-Every skill added to the library must answer these 10 design questions in its documentation:
-
-```text
-1. What is this skill?
-2. Why does it exist (what recurring task does it solve)?
-3. What is the trigger (when should the AI activate it)?
-4. What are the required and optional inputs?
-5. What capabilities does it require (memory, web, codebase)?
-6. What is the step-by-step workflow?
-7. What reference documents does it point to?
-8. What shared or external dependencies does it use?
-9. What failure modes or hallucination risks exist?
-10. How is the deliverable validated against the contract?
-```
+   * **One-Analysis Pass**: Direct the AI to catalog all gaps and issues in an **Issue Manifest** before generating drafts.
+   * **One-Correction Pass**: Direct the AI to fix all identified issues simultaneously, preventing multi-turn trial-and-error loops.
 
 ---
 
@@ -173,7 +183,7 @@ Anchor Skills maintains a crisp boundary between how skills are authored and how
 │   (End-User interacting with Claude, Gemini, OpenAI)   │
 │                                                        │
 │   User prompts AI → AI discovers SKILL.md → Reads      │
-│   references on demand → Queries Notion if needed →    │
-│   Executes workflow → Validates & delivers output      │
-└────────────────────────────────────────────────────────┘
+│   references on demand → Invokes sub-skills → Queries  │
+│   Notion if needed → Delivers verified output          │
+└───────────────────────────┴────────────────────────────┘
 ```

@@ -46,31 +46,63 @@ The system is governed by five distinct entities:
 └────────────────────────────────┘
 ```
 
-External skills (e.g., `obra/superpowers`) plug cleanly into the skill layer as referenced dependencies:
+External skills (e.g., `obra/superpowers`) and shared skills plug cleanly into the skill layer as referenced dependencies:
 
 ```text
-                  YOUR DOMAIN SKILL (e.g., Resume, Coding)
+                  YOUR DOMAIN SKILL (e.g., Resume, Email, LinkedIn)
                               ▲
                               │
                     ┌─────────┴─────────┐
                     │                   │
-             EXTERNAL BASE SKILL   SHARED SKILLS
-             (e.g., Superpowers)   (e.g., OOP, SOLID, Grammar)
+             EXTERNAL BASE SKILL   REUSABLE SUB-SKILLS
+             (e.g., Superpowers)   (e.g., english-writing)
 ```
 
 ---
 
-## 2. Why a Passive Skill Library?
+## 2. Core Architectural Distinction: Skill vs. Reference
 
-Traditional prompt setups fail in one of two ways:
-1. **The Giant Master Prompt**: Cramming identity, coding rules, resume guidelines, and hackathon strategies into a massive prompt. Every interaction burns thousands of tokens on irrelevant rules and confuses the AI with context noise.
-2. **Ad-hoc Re-prompting**: Manually typing out rules, quality checks, and background details from scratch every session.
+To keep skills clean, maintainable, and token-efficient, we enforce an explicit boundary between **Skills** and **References**:
 
-Anchor Skills solves this by storing instructions as a **modular tree of skills**. The AI loads only the specific branch relevant to the active task.
+| Dimension | Skill | Reference |
+| :--- | :--- | :--- |
+| **Definition** | An active, executable procedure with its own workflow, decision logic, and output. | Passive knowledge, definitions, syntax rules, lookup tables, or checklists. |
+| **Structure** | Contains a `SKILL.md` (purpose, triggers, steps, quality checks). | Plain markdown files in `references/` (e.g., `grammar-rules.md`, `jd-analysis.md`). |
+| **Execution Flow** | $\text{Input} \rightarrow \text{Analyze} \rightarrow \text{Transform} \rightarrow \text{Validate} \rightarrow \text{Output}$. | Queried on demand by the AI when executing a specific skill step. |
+| **Example** | `skills/english-writing/` (actively corrects prose across resumes, emails, and posts). | `references/grammar-rules.md` (passive lookup tables for tenses, punctuation, and voice). |
 
 ---
 
-## 3. Skill Tree & Progressive Disclosure
+## 3. The Reusable Skill Graph & Direction of Dependency
+
+When a capability is needed across multiple domains (such as writing clear, grammatically correct English), it is structured as an **independent reusable skill**.
+
+### Strict One-Way Dependency
+Dependencies in Anchor Skills must flow in one direction:
+
+```text
+                      english-writing (Skill)
+                      ▲       ▲       ▲       ▲
+                      │       │       │       │
+                      │ (used)│       │       │
+                      │       │       │       │
+               resume-generator  email   linkedin  reports
+```
+
+* `resume-generator` requires $\rightarrow$ `english-writing`.
+* `english-writing` has **zero knowledge** of `resume-generator`. It remains completely decoupled and reusable across future skills (`email-writing`, `linkedin-writing`, `cover-letter`).
+* **DRY Guarantee**: Grammar and linguistic rules are maintained in exactly one place (`english-writing/references/grammar-rules.md`), never copy-pasted into multiple domain skills.
+
+### Shallow Dependency Chains
+To prevent token bloat and ensure the AI does not lose track of the primary goal, skill chains must remain **shallow** (generally 1 level deep):
+
+$$\text{Resume Generator} \rightarrow \text{English Writing (1 level)}$$
+
+We explicitly prohibit deep 4–5 level chains ($\text{Resume} \rightarrow \text{Writing} \rightarrow \text{Grammar} \rightarrow \text{Language} \rightarrow \text{Rules}$).
+
+---
+
+## 4. Skill Tree & Progressive Disclosure
 
 Each skill is a self-contained directory designed around **progressive disclosure**. The root file contains only the core workflow and contracts, pointing to supporting documentation when deeper context is needed:
 
@@ -79,60 +111,45 @@ skills/resume-generator/
 │
 ├── SKILL.md                 # Primary workflow: triggers, inputs, outputs, rules
 │
+├── config.yaml              # Visual tokens: 1-page 2-col default, 1-col override
+│
 ├── references/              # Deep heuristics (loaded only on demand)
 │   ├── jd-analysis.md       # Classification taxonomy for job requirements
 │   ├── content.md           # Bullet formulas: Action + Technical Work + Result
-│   ├── grammar.md           # Linguistic standards, active voice, tense consistency
 │   ├── layout.md            # Typography, spacing tokens, column geometry
 │   └── validation.md        # Measurable ATS extraction & formatting checks
 │
 ├── examples/                # High-quality reference inputs & outputs
 │   └── sample-output.md
 │
-└── links/                   # Pointers to external dependencies and shared rules
-    ├── shared-skills.md     # Pointers to shared/engineering/solid.md, etc.
-    └── external-skills.md   # Pointers to upstream external repositories
+└── links/                   # Pointers to external dependencies and shared sub-skills
+    └── dependencies.md      # Declares pointer: REQUIRED SUB-SKILL: english-writing
 ```
 
 ### Navigating the Tree
 When the AI encounters a resume request:
-1. It reads `SKILL.md` (Level 1 overview).
-2. If it reaches the JD analysis phase, `SKILL.md` instructs:
-   > *"Classify terminology following `references/jd-analysis.md`."*
-3. The AI reads `references/jd-analysis.md` (Level 2 reference).
-4. If it needs to verify engineering bullet structure, it follows the pointer to `shared/engineering/oop.md` (Level 3 shared skill).
-5. It **never** reads coding, hackathon, or LinkedIn instructions during a resume task.
+1. It reads `skills/resume-generator/SKILL.md` (Level 1 overview).
+2. It executes Step 1 (Input Validation) and Step 2 (JD Analysis).
+3. At Step 2, it loads `references/jd-analysis.md` on demand to classify skills and responsibilities.
+4. At Step 4, it drafts accomplishment bullets using `references/content.md`.
+5. At Step 5 (Writing Quality), `SKILL.md` directs:
+   > *"Execute REQUIRED SUB-SKILL: `skills/english-writing/SKILL.md`."*
+6. The AI invokes `english-writing`, loads its `references/grammar-rules.md`, verifies active voice and tenses, and returns polished text to the resume pipeline.
+7. Unrelated domains (coding, hackathon, email) are **never** loaded.
 
 ---
 
-## 4. Skill Hierarchy Levels (Levels 0–4)
+## 5. Skill Hierarchy Levels (Levels 0–4)
 
 To prevent coupling and maintain strict separation of concerns, skills are organized into five architectural tiers:
 
 | Tier | Category | Role | Example |
 | :---: | :--- | :--- | :--- |
 | **Level 0** | **Anchor Core Principles** | Foundational system tenets, authority hierarchy, minimum context rule. | `docs/architecture.md`, `docs/design_principles.md` |
-| **Level 1** | **Shared Reusable Knowledge** | Common engineering and communication standards referenced across skills. | `shared/engineering/solid.md`, `shared/writing/active-voice.md` |
+| **Level 1** | **Shared Reusable Skills** | Common cross-cutting workflows used by multiple domain tasks. | `skills/english-writing/` |
 | **Level 2** | **Domain Skills** | Self-contained, task-specific workflow packages. | `skills/resume-generator/`, `skills/hackathon-evaluator/` |
 | **Level 3** | **Task-Specific Overlays** | Context-specific rule additions or overrides for a domain. | `skills/resume-generator/overlays/jpmorgan.md` |
 | **Level 4** | **Provider Adapters** | Provider-specific delivery files (Claude prompts/tools, Gemini builtins). | `adapters/claude/`, `adapters/gemini/` |
-
----
-
-## 5. References vs. Dependencies vs. Optional Dependencies
-
-Instructions maintain explicit distinctions between how related resources are connected:
-
-```text
-Resume Skill
-  ├── [Reference]            → references/grammar.md (advisory linguistic guidelines)
-  ├── [Shared Dependency]    → shared/engineering/dry.md (required engineering standard)
-  └── [External Dependency]  → superpowers/systematic-debugging (external base skill)
-```
-
-1. **Reference (`references/`)**: Internal guidance within the skill package. Provides heuristics, definitions, or rubrics that aid execution.
-2. **Shared Dependency (`shared/`)**: A common rule or skill residing elsewhere in Anchor Skills. Referenced by pointer to avoid duplicating text (DRY).
-3. **External Dependency (`external/`)**: A skill hosted in an upstream open-source repository (e.g., `obra/superpowers`). Referenced as an external baseline without cloning or forking.
 
 ---
 
@@ -186,7 +203,7 @@ memory_scopes:
   - style.communication
 ```
 
-* **Memory is optional**: A pure skill (like JSON formatting) declares `memory: forbidden`.
+* **Memory is optional**: A pure skill declares `memory: forbidden`.
 * **Scoped memory access**: The Resume Skill requests only education, backend experience, and relevant projects. It never accesses private personal journals or unrelated hobby notes.
 
 ---
@@ -208,11 +225,3 @@ Anchor Skills is completely decoupled from any single AI vendor:
 
 * If you switch from Claude to Gemini or OpenAI, the **core skill instructions never change**.
 * The **adapter** merely maps the skill to the provider's native delivery mechanism (e.g., system instructions, custom GPT action schemas, or agent skills directories).
-
----
-
-## 9. The Role of Antigravity vs. GitHub
-
-* **Antigravity**: The **developer's workbench**. Used to inspect, design, draft, refine, test, and document skills. It is an authoring tool, not a background server.
-* **GitHub**: The **library and version history**. Houses the authoritative, structured skill repository (`bhargava562/anchor-skills`).
-* **The AI Provider**: The **runtime engine**. Reads the skills directly from the repository or local filesystem and carries out user requests.

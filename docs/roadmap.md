@@ -8,7 +8,7 @@ This document outlines the disciplined, phased roadmap for building, organizing,
 
 ```mermaid
 graph LR
-    P1[Phase 1: Resume Skill Package] --> P2[Phase 2: Shared Skills & Overlays]
+    P1[Phase 1: Resume + English Writing Skills] --> P2[Phase 2: Shared Skills & Overlays]
     P2 --> P3[Phase 3: Provider Adapters]
     P3 --> P4[Phase 4: Notion Brain Linking]
     P4 --> P5[Phase 5: Capability Declarations]
@@ -23,14 +23,18 @@ graph LR
 
 ## 2. Phase-by-Phase Deliverables
 
-### Phase 1: Resume Generator Skill Package (Active Milestone)
-* **Objective**: Build the first complete, production-grade skill package proving the progressive disclosure instruction architecture.
+### Phase 1: Two-Skill Composition — English Writing & Resume Generator (Active Milestone)
+* **Objective**: Build the foundational independent reusable skill (`english-writing`) and the domain consumer skill (`resume-generator`), proving cross-skill composition and DRY without prompt duplication.
 * **Deliverables**:
-  * `skills/resume-generator/SKILL.md` (Workflow coordinator, input/output schemas, hard rules).
-  * `skills/resume-generator/config.yaml` (1-page 2-col default, 1-col override, typography tokens).
-  * Modular references in `references/` (`jd-analysis.md`, `content.md`, `grammar.md`, `layout.md`, `validation.md`).
-  * Real-world benchmark examples in `examples/`.
-  * Dependency pointers in `links/`.
+  * **Skill 1 (`skills/english-writing/`)**:
+    * `SKILL.md`: 10-step correction workflow preserving factual meaning while fixing syntax, tense, and voice.
+    * `references/grammar-rules.md`: Comprehensive passive rules lookup.
+  * **Skill 2 (`skills/resume-generator/`)**:
+    * `SKILL.md`: Master workflow referencing `english-writing` in Step 5 before finalizing text.
+    * `config.yaml`: Visual layout tokens (1-page 2-col default, 1-col override, typography, margins).
+    * `references/`: `jd-analysis.md`, `content.md`, `layout.md`, `validation.md`.
+    * `examples/`: Benchmark JD, candidate evidence, and 1-page output.
+    * `links/dependencies.md`: Pointer to `english-writing`.
 
 ### Phase 2: Shared Knowledge & External Skill Overlays
 * **Objective**: Establish the `shared/` library and prove that external skills can be customized via overlays without cloning or forking.
@@ -80,10 +84,10 @@ graph LR
 ### Phase 9: Domain Skills Expansion
 * **Objective**: Expand the Anchor Skills library across professional and technical domains.
 * **Deliverables**:
-  * `skills/cover-letter/`: Paired companion to the Resume Skill.
-  * `skills/linkedin-writer/`: Professional profile and technical post authoring.
-  * `skills/hackathon-evaluator/`: Fast opportunity assessment, idea validation, and tech stack scoping.
-  * `skills/technical-research/`: Deep-dive literature and documentation synthesis.
+  * `skills/cover-letter/`: Paired companion to the Resume Skill (reusing `english-writing`).
+  * `skills/email-writing/`: Professional communication (reusing `english-writing`).
+  * `skills/linkedin-writer/`: Technical posts and profile summaries (reusing `english-writing`).
+  * `skills/hackathon-evaluator/`: Fast opportunity assessment and tech stack scoping.
   * `skills/architecture-review/`: Systematic design critique applying shared OOP/SOLID principles.
 
 ### Phase 10: Catalog Automation & Maintenance
