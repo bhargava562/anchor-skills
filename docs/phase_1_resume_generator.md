@@ -46,7 +46,8 @@ skills/english-writing/
 ├── references/                      # Selective, modular knowledge (Original synthesis)
 │   ├── sentence-structure.md        # [v0.1] Simple/compound/complex, clauses, fragments, run-ons, parallel structure
 │   ├── verb-system.md               # [v0.1] Main verbs, Auxiliaries (be/have/do), Modals, Tenses, Aspect, Voice
-│   └── professional-writing.md      # [v0.1] Clarity, naturalness, conciseness, fluff elimination, tone calibration
+│   ├── professional-writing.md      # [v0.1] Clarity, naturalness, conciseness, fluff elimination, tone calibration
+│   └── composition-and-prose-craft.md # [v0.1] Paragraph architecture, flow, lexical variety, cohesion, prose economy
 │   (v0.2 planned: conditionals.md, verb-patterns.md)
 │   (v0.3 planned: phrasal-verbs.md, articles-determiners.md)
 ├── examples/
@@ -55,7 +56,8 @@ skills/english-writing/
     ├── grammar-pressure.md          # TDD test scenarios: agreement, fragments, auxiliary misuse
     ├── meaning-preservation.md      # TDD test scenarios: technical nouns, metrics, factual freezing
     ├── voice-and-tone.md            # TDD test scenarios: appropriate active vs. valid passive, parallel lists
-    └── domain-independence.md       # Proves skill operates on email, LinkedIn, and technical docs without resume bias
+    ├── domain-independence.md       # Proves skill operates on email, LinkedIn, and technical docs without resume bias
+    └── content-generation.md        # Original paragraph generation tests & evaluation rubric under short prompts
 ```
 
 ### 2.3 Synthesis from Raymond Murphy's *English Grammar in Use*
@@ -63,6 +65,7 @@ The source grammar book (5th Edition, Cambridge) provides a comprehensive topic 
 * **`sentence-structure.md`**: Focuses on subject-verb agreements, simple vs. compound vs. complex sentences (coordination via coordinating conjunctions *for, and, nor, but, or, yet, so*; subordination via *although, because, since, while, after*), eliminating fragments and comma splices, word order with adverbs (Murphy Units 109–110), and parallel structure.
 * **`verb-system.md`**: Dedicated treatment of auxiliary verbs (*be, have, do* for questions, negations, and continuous/perfect aspects from Murphy Units 1–16, 49–52), modal verbs (*can, could, must, should, would* from Units 26–36), tense consistency across clauses, and active vs. passive voice (Units 42–44).
 * **`professional-writing.md`**: Prefer direct, clear sentence openings appropriate to the writing context (strictly domain-neutral), trimming wordy padding (*"in order to"*, *"due to the fact that"*), removing empty corporate filler (*"passionate"*, *"results-driven"*), and maintaining generic parallel list structures.
+* **`composition-and-prose-craft.md`**: Causal paragraph progression (Premise $\rightarrow$ Mechanism $\rightarrow$ Consequence $\rightarrow$ Resolution), natural cohesive ties via lexical hooks and demonstratives, lexical variety while preserving core technical nouns, sentence rhythm variation, prose economy, and factual grounding.
 
 ### 2.4 Standard Portable Frontmatter (`SKILL.md`)
 ```yaml
@@ -72,11 +75,12 @@ description: Use when drafting, correcting, rewriting, or reviewing English writ
 ---
 ```
 
-### 2.5 Four Predictable Operating Modes
+### 2.5 Five Predictable Operating Modes
 * **Mode A — Grammar Correction**: Fix grammatical, tense, agreement, and punctuation errors. Make the minimum necessary changes to achieve correctness. Zero stylistic rewriting.
 * **Mode B — Clarity Improvement**: Fix awkward phrasing, comma splices, run-ons, and fragments. Preserve original sentence length, tone, and vocabulary where valid.
 * **Mode C — Professional Rewrite**: Polish sentence structure to clean, natural, professional standards. Eliminate wordiness and filler while strictly safeguarding all facts, technical tools, and metrics.
 * **Mode D — Review & Critique**: Diagnose language problems first (explaining root causes), then provide the corrected version.
+* **Mode E — Composition & Content Generation**: Generate coherent, original paragraphs, explanations, or prose from minimal prompts. Sequence ideas causally, vary sentence rhythm, maximize prose economy, and preserve technical precision.
 
 ### 2.6 Meaning & Claim Invariants (Frozen Elements)
 The AI is strictly prohibited from altering, exaggerating, or generalizing:

@@ -43,6 +43,7 @@ The skill operates in one of four distinct modes. If no mode is specified, defau
 | **Mode B: Clarity Improvement** *(Default)* | Fix awkward phrasing, run-ons, fragments, and poor transitions. | **Moderate targeted edits.** Improve flow and readability while preserving original sentence length, vocabulary, and tone. |
 | **Mode C: Professional Rewrite** | Upgrade prose to clear, concise, active professional standards. | **Controlled restructuring.** Eliminate wordiness and filler while strictly locking all facts, metrics, and technical terms. |
 | **Mode D: Review & Critique** | Inspect text and provide actionable editorial feedback. | **Diagnostic output.** Explain identified problems and root causes, followed by the corrected deliverable. |
+| **Mode E: Composition & Content Generation** | Generate coherent, original paragraphs, explanations, or prose from minimal prompts. | **Original composition.** Organize ideas in logical progression, vary sentence structure, maximize prose economy, and preserve technical precision. |
 
 ---
 
@@ -60,13 +61,15 @@ The following elements are **immutable invariants**. You are strictly prohibited
 
 ---
 
-## 6. The "Do Not Overcorrect" Rules
+## 6. The "Do Not Overcorrect" & Lexical Precision Rules
 
 1. **If the source text is already grammatically correct and the requested mode is Mode A (Correction), return it unchanged.**
 2. **Do not change correct writing merely to make it different.**
 3. **Do not rewrite for style when the requested mode is correction.**
-4. **Do not replace valid technical terminology with simpler words merely for variety.**
-5. **Do not manufacture artificial sophistication, corporate jargon, or buzzwords.**
+4. **Avoid unnecessary repetition; preserve useful repetition when it improves accuracy, emphasis, or clarity. Never force unnatural synonyms.**
+5. **Do not replace valid technical terminology with simpler words merely for variety.**
+6. **Do not manufacture artificial sophistication, corporate jargon, or buzzwords.**
+7. **Do not output an audit or vocabulary report by default in ordinary writing outputs. Deliver clean prose directly unless an audit is explicitly requested.**
 
 ---
 
@@ -91,40 +94,25 @@ When writing objectives compete, resolve them in this exact order:
 
 ---
 
-## 9. Diagnostic Execution Workflow
+## 9. Execution Workflows
 
-Follow this procedure sequentially:
+### 9.1 Revision & Correction Workflow (Modes A, B, C, D)
+1. **Identify Mode & Audience**: Set target tolerance (A: minimal, B: flow, C: professional rewrite, D: critique).
+2. **Freeze Invariants**: Lock entities, metrics, technical terms, relationships, and claim scope.
+3. **Diagnose & Consult References**:
+   * Clause / structure problems? → Consult `references/sentence-structure.md`
+   * Verb / auxiliary / tense?    → Consult `references/verb-system.md`
+   * Wordiness / filler / tone?   → Consult `references/professional-writing.md`
+4. **Apply Minimal Necessary Correction**.
+5. **Verification Gate**: Confirm 100% meaning preservation, zero fact alteration, and absence of overcorrection.
 
-```text
-INPUT (Text + Requested Mode)
-  │
-  ▼
-1. Identify Mode (A, B, C, or D) and Audience
-  │
-  ▼
-2. Identify & Freeze Meaning & Claim Invariants
-   (Entities, dates, metrics, technical nouns, claim scope, relationships)
-  │
-  ▼
-3. Diagnose Language Flaws:
-   • Clause / structure problems? → Consult `references/sentence-structure.md`
-   • Verb / auxiliary / tense?    → Consult `references/verb-system.md`
-   • Wordiness / filler / tone?   → Consult `references/professional-writing.md`
-  │
-  ▼
-4. Apply Minimal Necessary Correction
-  │
-  ▼
-5. Pre-Delivery Verification Gate:
-   [ ] Was factual meaning preserved 100%?
-   [ ] Are all numbers, tools, relationships, and metrics intact?
-   [ ] Was correct phrasing left untouched (no overcorrection)?
-   [ ] Are tenses and auxiliary verbs correct?
-   [ ] Is parallel structure maintained in lists?
-  │
-  ▼
-OUTPUT: Polished, Verified Deliverable
-```
+### 9.2 Original Composition Workflow (Mode E)
+1. **Identify Purpose, Audience & Format**: Determine the explanatory goal and register.
+2. **Arrange Logical Progression**: Sequence ideas causally (Premise $\rightarrow$ Mechanism $\rightarrow$ Consequence $\rightarrow$ Resolution).
+3. **Draft with Prose Craft**: Consult `references/composition-and-prose-craft.md` for paragraph cohesion, natural transitions, sentence rhythm, and prose economy.
+4. **Maintain Lexical Precision**: Use precise domain terminology; vary secondary words naturally without forced synonyms.
+5. **Eliminate Redundancy & Filler**: Strip throat-clearing preambles and empty clichés.
+6. **Verification Gate**: Confirm causal soundness, factual grounding (zero fabricated statistics), and clean grammatical mechanics.
 
 ---
 
@@ -138,3 +126,5 @@ When detailed grammatical patterns are needed, consult the modular references lo
   *Main verbs vs. Auxiliaries (be, have, do), question/negative formation, modals, tense consistency across clauses, and passive voice.*
 * **Professional Writing**: [`references/professional-writing.md`](file:///d:/skill-shelf/skills/english-writing/references/professional-writing.md)  
   *Direct sentence openings, conciseness, corporate filler elimination, and domain-neutral parallel list structures.*
+* **Composition & Prose Craft**: [`references/composition-and-prose-craft.md`](file:///d:/skill-shelf/skills/english-writing/references/composition-and-prose-craft.md)  
+  *Paragraph architecture, logical progression, coherence, lexical variety, sentence rhythm, prose economy, and redundancy elimination.*
