@@ -1,189 +1,215 @@
-# Anchor Skills — Design Principles & Instruction Architecture
+# Skill Shelf — Design Principles & Instruction Architecture
 
-This document articulates how classical **Object-Oriented Programming (OOP), SOLID, and DRY principles** are applied to organize **skill instructions, documentation, and prompt workflows**—rather than software application code.
-
----
-
-## 1. OOP Mental Model for Instruction Organization
-
-When managing dozens of AI skills across multiple domains, unstructured prompt writing leads to context pollution, conflicting directives, and unmaintainable prompt bloat. Anchor Skills treats instruction sets as modular, engineered components:
-
-```text
-┌────────────────────────────────────────────────────────┐
-│                      ABSTRACTION                       │
-│    Skills expose clean capabilities (e.g. English      │
-│    Writing); consumers do not care how rules work      │
-└───────────────────────────┬────────────────────────────┘
-┌───────────────────────────▼────────────────────────────┐
-│                     ENCAPSULATION                      │
-│     Internal rules stay inside their skill folders;    │
-│     deep heuristics in references/; scoped memory only │
-└───────────────────────────┬────────────────────────────┘
-┌───────────────────────────▼────────────────────────────┐
-│                      COMPOSITION                       │
-│       Assemble effective capabilities: Resume Skill     │
-│       invokes English Writing sub-skill via pointer    │
-└───────────────────────────┬────────────────────────────┘
-┌───────────────────────────▼────────────────────────────┐
-│                      POLYMORPHISM                      │
-│      Identical skill instructions execute across       │
-│      different AI runtimes (Claude, Gemini, OpenAI)   │
-└───────────────────────────┬────────────────────────────┘
-┌───────────────────────────▼────────────────────────────┐
-│                  DEPENDENCY INVERSION                  │
-│       Consumers depend on capability pointers, not      │
-│       hardcoded rules or vendor-specific tools         │
-└────────────────────────────────────────────────────────┘
-```
-
-### 1.1 Abstraction
-* **Definition**: A skill defines *what* it accomplishes as a reusable capability without forcing consumers to understand its internal mechanisms.
-* **Instruction Practice**: `skills/english-writing/SKILL.md` exposes: *"Produce grammatically correct, active, professional English while preserving factual meaning."* The consumer (`resume-generator`) invokes this capability without needing to know how tense tables or punctuation rules are structured internally.
-
-### 1.2 Encapsulation & Progressive Disclosure
-* **Definition**: Information is strictly compartmentalized. Supporting knowledge is hidden until the AI actively needs it.
-* **Instruction Practice**: 
-  * Grammar rules are encapsulated inside `skills/english-writing/references/grammar-rules.md`. `resume-generator` does **not** copy or embed them.
-  * Memory access is encapsulated into minimal scopes (`identity.education`, `experience.backend`). The skill never receives the user's entire personal history.
-
-### 1.3 Composition & Reusability
-* **Definition**: Powerful capabilities are built by combining independent, focused skills rather than writing monolithic super-prompts:
-
-$$\text{Effective Task} = \text{Domain Skill (Resume)} + \text{Reusable Sub-Skill (English Writing)} + \text{Scoped Memory}$$
-
-* **Instruction Practice**: `english-writing` is authored once as an independent language capability. It is reused by multiple consumers:
-  ```text
-  resume-generator   ──────────────► english-writing (Language Capability)
-  email-writing      ──────────────► english-writing
-  linkedin-writing   ──────────────► english-writing
-  report-writing     ──────────────► english-writing
-  ```
-
-### 1.4 Polymorphism & Portability
-* **Definition**: The same skill package executes predictably across diverse AI environments without modifying the core instruction text.
-* **Instruction Practice**: `skills/resume-generator/SKILL.md` is identical whether run by Claude, Gemini, or OpenAI. The provider's adapter handles discovery and tool invocation; the core instructions remain 100% portable.
-
-### 1.5 Dependency Inversion Principle (DIP)
-* **Definition**: High-level instructions must depend on abstract capabilities and explicit skill pointers, never on hardcoded vendor APIs or duplicate rules.
-* **Instruction Practice**:
-  * **Correct**: `resume-generator` declares: `"Execute REQUIRED SUB-SKILL: english-writing"`.
-  * **Incorrect**: `resume-generator` embeds its own duplicate grammar rules or hardcodes vendor tool calls.
+This document articulates the engineering principles governing **Skill Shelf**. By treating prompt engineering as software architecture, we apply classical **Object-Oriented Programming (OOP), SOLID, and DRY principles** to instruction sets, documentation, and agent workflows.
 
 ---
 
-## 2. SOLID Principles Applied to Prompt & Skill Engineering
+## 1. 2-Tier Progressive Disclosure
+
+### The Context Window Bottleneck
+Large Language Models (LLMs) operate under finite context budgets. Monolithic prompts (>1,000 lines) degrade model performance in three distinct ways:
+1. **Lost in the Middle**: Crucial instructions placed in the middle of long prompts are frequently ignored.
+2. **Instruction Drift & Hallucination**: Distracting heuristics cause the model to jump ahead, misinterpret constraints, or invent facts.
+3. **Token Inefficiency**: Loading an entire library of rules on every turn burns tokens and degrades latency.
+
+### The 2-Tier Solution
+Skill Shelf decomposes knowledge into two strictly bounded tiers:
 
 ```mermaid
-graph TD
-    SRP["S: Single Responsibility<br/>One purpose per document"]
-    OCP["O: Open / Closed<br/>Extend via overlays, don't edit base"]
-    LSP["L: Liskov Substitution<br/>Interchangeable dependency skills"]
-    ISP["I: Interface Segregation<br/>Declare only needed capabilities"]
-    DIP["D: Dependency Inversion<br/>Rely on capabilities, not vendor tools"]
+flowchart TD
+    subgraph Discovery["Step 0: Routing"]
+        Index["INDEX.md<br/>Master Intent Router"]
+    end
+
+    subgraph Tier1["Tier 1: Master Workflow (<120 lines)"]
+        SkillMD["SKILL.md<br/>• agentskills.io frontmatter<br/>• I/O contracts & triggers<br/>• Step-by-step pipeline<br/>• Pointers to Tier 2 references"]
+        Overrides["overrides.md<br/>• Personal & workspace customizations"]
+    end
+
+    subgraph Tier2["Tier 2: Deep Heuristics (Loaded on Demand)"]
+        RefA["references/engineering-standards.md"]
+        RefB["references/task-plan-template.md"]
+        RefC["references/review-rubric.md"]
+    end
+
+    Index -->|"Discovers matching skill"| SkillMD
+    SkillMD -->|"Loads local overrides"| Overrides
+    SkillMD -.->|"Step 2: Needs architecture rules"| RefA
+    SkillMD -.->|"Step 3: Needs template"| RefB
 ```
 
-### S — Single Responsibility Principle (SRP)
-* **Rule**: Each document and skill in the repository has exactly one distinct responsibility:
-  * `skills/resume-generator/`: Knows how to analyze JDs, map evidence, plan sections, and format 1-page resumes.
-  * `skills/english-writing/`: Knows how to check grammar, tense, parallel structure, and clarity.
-  * `references/jd-analysis.md`: Classifies job requirements.
-  * `references/layout.md`: Governs typography, margins, and vertical rhythm.
-
-### O — Open/Closed Principle (OCP)
-* **Rule**: Skills are open for extension (via configuration overrides and overlays) but closed for modification (upstream baselines remain untouched).
-* **Application**: Adding an explicit 1-column layout override changes `config.yaml` without altering the core content workflow.
-
-### L — Liskov Substitution Principle (LSP)
-* **Rule**: A shared skill or external dependency can be substituted with another compatible skill without breaking the calling workflow.
-* **Application**: If `english-writing` is enhanced or substituted with an advanced editing skill adhering to the same input/output contract, `resume-generator` continues functioning without edits.
-
-### I — Interface Segregation Principle (ISP)
-* **Rule**: A skill should never be forced to declare, load, or depend on instructions it does not use.
-* **Application**:
-  * `resume-generator` declares: `memory: required`, `sub_skills: [english-writing]`.
-  * A pure formatting skill declares `memory: forbidden` and `sub_skills: []`.
-  * English writing is loaded on demand, not globally enforced for tasks that do not write prose (e.g., JSON formatting).
-
-### D — Dependency Inversion Principle (DIP)
-* **Rule**: High-level task workflows depend on capability declarations, leaving native AI environments to supply the concrete tools.
-* **Application**: If a skill needs current company terminology, it declares `web: optional`. Whether Claude uses `web_search` or Gemini uses Google Search is transparent to the skill.
+* **Tier 1 (`SKILL.md`)**:
+  * Must remain strictly **under 120 lines** (enforced by `scripts/validate_skills.py`).
+  * Acts as the algorithmic orchestrator: specifies triggers, prerequisites, inputs, outputs, phase transitions, and relative links to Tier 2 references.
+* **Tier 2 (`references/*.md`)**:
+  * Modular deep-dives: detailed checklists, mental model taxonomies, validation rubrics, syntax guides, and templates.
+  * **Rule**: Tier 2 references are **never loaded upfront**. The agent fetches a reference file via MCP only when executing the specific step that requires it.
 
 ---
 
-## 3. DRY (Don't Repeat Yourself) Across the Skill Graph
+## 2. Context Hygiene & Anti-Vibe-Coding Rules
 
-Prompt duplication is a major source of instruction drift and maintenance failure.
+Prompt instructions must be engineered with the same precision as systems software. Vague, conversational prose degrades model determinism.
 
-* **Anti-Pattern**:
-  ```text
-  resume-generator/references/grammar.md
-  email-writing/references/grammar.md
-  linkedin-writing/references/grammar.md
-  cover-letter/references/grammar.md
-  ```
-  Result: 4 duplicate copies, 4 maintenance points, inevitable divergence.
-
-* **Anchor Solution**:
-  ```text
-  skills/english-writing/references/grammar-rules.md
-  ```
-  All skills point to `english-writing` as a required sub-skill. One rule set; multiple consumers.
-
----
-
-## 4. Direction of Dependency & Shallow Chains
-
-To maintain stability across the repository:
-
-1. **One-Way Dependency**:
-   * `resume-generator` depends on $\rightarrow$ `english-writing`.
-   * `english-writing` has **zero knowledge** of `resume-generator`.
-2. **Shallow Chains (1 Level Deep)**:
-   * Keep cross-skill dependencies 1 level deep:
-     $$\text{Resume Generator} \rightarrow \text{English Writing}$$
-   * Avoid deeply nested chains 4–5 levels deep ($\text{Resume} \rightarrow \text{Writing} \rightarrow \text{Grammar} \rightarrow \text{Language} \rightarrow \text{Rules}$), which cause models to lose task context.
-
----
-
-## 5. Anti-Vibe-Coding Rules for Skill Authoring
-
-Skills are engineering assets, not casual chat prompts. All instructions must adhere to the following standards:
-
-1. **Delete Fluff**: Remove cheerleading language (*"You are a world-class resume genius"*, *"Make it amazing!"*). Modern models respond to clear constraints, input schemas, and deterministic rubrics.
-2. **The "What Breaks?" Test**: For every rule or sentence in a skill, ask: *"What degrades in the AI's output if this line is deleted?"* If the answer is "nothing," delete it.
+### Core Rules for Context Hygiene
+1. **Zero Fluff & Cheerleading**:
+   * Prohibited: *"You are an elite, world-class software architect! Strive for utmost perfection and be awesome."*
+   * Required: *"Analyze the system architecture against SOLID principles. Verify that controllers are thin and business logic is isolated in domain services."*
+2. **The "What Breaks?" Test**:
+   * For every rule, sentence, or constraint added to a skill, ask: **"What specific failure occurs in the AI output if this line is deleted?"**
+   * If removing the line does not measurably increase output defects, delete it immediately.
 3. **Concrete Formulas Over Vague Directives**:
-   * Instead of *"Write impactful bullets"*, specify:
-     $$\text{Bullet} = \text{Past-Tense Action Verb} + \text{Technical Core / Tool} + \text{Quantified Impact / Scale}$$
-   * Instead of *"Make it ATS friendly"*, specify:
-     * Extractable vector text only (no image-embedded contact info).
-     * Standard section headings (`Experience`, `Education`, `Skills`, `Projects`).
-     * Zero unverified keyword fabrication.
-4. **Determinism Over Hallucination**:
-   * **One-Analysis Pass**: Direct the AI to catalog all gaps and issues in an **Issue Manifest** before generating drafts.
-   * **One-Correction Pass**: Direct the AI to fix all identified issues simultaneously, preventing multi-turn trial-and-error loops.
+   * Prohibited: *"Make the code clean and well-structured."*
+   * Required: *"Limit function length to under 30 lines. Enforce Single Responsibility: each class must have one reason to change."*
+4. **Issue Manifest Before Execution**:
+   * Complex workflows (such as debugging or code review) require the agent to generate an explicit **Issue Manifest** or **Triage Table** before suggesting code modifications.
+   * Prevents premature fixes and unverified guessing.
 
 ---
 
-## 6. Build Flow vs. Use Flow
+## 3. `enabledTools` Allowlists & Least Privilege
 
-Anchor Skills maintains a crisp boundary between how skills are authored and how skills are executed:
+Connecting an AI agent to an external tool repository introduces security and stability risks if the tool surface is unrestricted.
 
 ```text
 ┌────────────────────────────────────────────────────────┐
-│                      BUILD FLOW                        │
-│   (Developer using Antigravity IDE & Git)              │
-│                                                        │
-│   Design Skill Contract → Draft References → Test      │
-│   with Mock Scenarios → Commit to GitHub Library       │
+│                   AI AGENT RUNTIME                     │
 └───────────────────────────┬────────────────────────────┘
+                            │
+               Restricted by enabledTools:
+               ["get_file_contents", "search_code"]
                             │
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│                       USE FLOW                         │
-│   (End-User interacting with Claude, Gemini, OpenAI)   │
+│              GITHUB COPILOT READ-ONLY MCP              │
+│       https://api.githubcopilot.com/mcp/readonly       │
+├────────────────────────────────────────────────────────┤
+│  ALLOWED:                                              │
+│  ✔ Read INDEX.md & AGENTS.md                           │
+│  ✔ Read skills/<name>/SKILL.md                         │
+│  ✔ Read skills/<name>/references/*.md                  │
+│  ✔ Search repository files by symbol or path           │
 │                                                        │
-│   User prompts AI → AI discovers SKILL.md → Reads      │
-│   references on demand → Invokes sub-skills → Queries  │
-│   Notion if needed → Delivers verified output          │
-└───────────────────────────┴────────────────────────────┘
+│  FORBIDDEN & BLOCKED:                                  │
+│  ✖ Write, edit, or commit files                        │
+│  ✖ Execute shell commands or scripts                   │
+│  ✖ Delete repository assets                            │
+│  ✖ Access environment variables or local secrets       │
+└────────────────────────────────────────────────────────┘
 ```
+
+### Architectural Rationale
+* **Principle of Least Privilege**: An agent consuming skills only needs to discover and read markdown files. Granting write permissions or terminal execution to a remote procedural brain creates an unnecessary attack surface.
+* **Prompt Injection Defense**: By restricting tool access strictly to `get_file_contents` and `search_code`, malicious prompts cannot instruct the agent to tamper with skill definitions or overwrite local files.
+* **Deterministic Execution**: Agents operate as pure consumers of the procedural brain, guaranteeing that the skill instructions remain identical across all executions.
+
+---
+
+## 4. Base + Overrides Pattern (`overrides.md`)
+
+Upstream base skills must remain pure, universal, and reusable across multiple users and teams. However, individual developers require customized preferences, stricter constraints, or project-specific tooling.
+
+Skill Shelf resolves this via the **Base + Overrides Pattern**:
+Every skill folder contains an `overrides.md` file at its root.
+
+```text
+skills/systematic-debugging/
+├── SKILL.md            # Universal base skill (upstream, pristine)
+├── overrides.md        # Local customizations & personal preferences
+└── references/         # Universal checklists & taxonomies
+```
+
+### The Four Deterministic Override Primitives
+
+When authoring `overrides.md`, use these four standardized verbs:
+
+```markdown
+# Local Overrides: Systematic Debugging
+
+### ADD
+- Prioritize reproducing bugs inside Docker container environments before checking host setups.
+- Append a memory leak check step when debugging Node.js or Go services.
+
+### REPLACE
+- Replace default curl network diagnostics with `httpie` commands.
+- Use Vitest instead of Jest for all unit test verification.
+
+### RESTRICT
+- Do NOT apply code modifications without an approved reproduction test case.
+- Never modify database migration files that have already landed in production.
+
+### PRIORITISE
+- Prioritize backward API compatibility over architectural refactoring.
+- Elevate type-safety constraints above runtime micro-optimizations.
+```
+
+### Conflict Resolution Precedence
+When an agent executes a workflow, conflicts are resolved in this deterministic order:
+
+$$\text{Global Safety / Security} > \text{Workspace / User } \texttt{overrides.md} > \text{Base } \texttt{SKILL.md} \text{ Defaults}$$
+
+---
+
+## 5. Read-Only Boundaries & Separation of Flows
+
+Skill Shelf enforces a strict distinction between how skills are authored and how skills are consumed:
+
+```mermaid
+flowchart LR
+    subgraph BuildFlow["BUILD FLOW (Developer & Git)"]
+        Author["Author / Edit Skills"] --> Validate["Run validate_skills.py"]
+        Validate --> Bundle["Run bundle_skills.py"]
+        Bundle --> Commit["Git Commit & Push to GitHub"]
+    end
+
+    subgraph UseFlow["USE FLOW (AI Agents at Runtime)"]
+        Agent["AI Agent Runtime"] --> QueryMCP["Query GitHub Copilot MCP<br/>(Read-Only Boundary)"]
+        QueryMCP --> Exec["Execute Skill Workflow"]
+        Exec --> Artifact["Deliver Verified Output"]
+    end
+
+    Commit -.->|"Immutable State"| QueryMCP
+```
+
+### Guarantees of the Read-Only Boundary
+* **No Runtime Mutation**: Agents cannot modify their own skill instructions during execution.
+* **Reproducibility**: Two different agents invoking the same skill at the same commit hash receive identical instructions.
+* **Zero Contamination**: Errors or hallucinations produced during a specific task execution cannot contaminate the canonical skill library.
+
+---
+
+## 6. SOLID & DRY Applied to Prompt & Skill Engineering
+
+Instruction sets suffer from the same entropy as application code. Skill Shelf directly implements the SOLID and DRY principles:
+
+### S — Single Responsibility Principle (SRP)
+* Each skill has **one** clear purpose:
+  * `core-thinking`: First-principles decomposition and trade-off analysis.
+  * `systematic-debugging`: Root-cause tracing and bug reproduction.
+  * `planning-and-architecture`: System design and task planning.
+  * `code-review`: Subagent diff review and severity triage.
+  * `english-writing`: Reusable language and prose quality.
+* Supporting files (`references/`) own narrow knowledge slices (e.g. `engineering-standards.md` owns SOLID rules; it does not dictate debugging protocols).
+
+### O — Open/Closed Principle (OCP)
+* Skills are **open for extension** (via `overrides.md`), but **closed for modification** (the base `SKILL.md` remains untouched).
+* New project requirements do not require fork-bombing or rewriting upstream skills.
+
+### L — Liskov Substitution Principle (LSP)
+* Sub-skills and references are interchangeable if they satisfy the declared input/output contract.
+* Any writing engine satisfying the language quality contract can replace `english-writing` without breaking consumer skills.
+
+### I — Interface Segregation Principle (ISP)
+* Skills expose lean, decoupled contracts. An agent only reads the reference files it actually needs for its current step.
+* A pure code review task does not load prose composition rules; a resume planning task does not load root-cause checklists.
+
+### D — Dependency Inversion Principle (DIP)
+* High-level skill instructions depend on abstract capability contracts, not concrete agent-specific tooling.
+* A skill declares: *"Retrieve file contents using the available read tool"*, rather than hardcoding vendor-specific syntax like `"call antigravity_tool_xyz"`.
+
+### DRY — Don't Repeat Yourself
+* Cross-cutting heuristics are defined in exactly one place:
+  * English linguistic rules $\rightarrow$ `skills/english-writing/`
+  * Engineering boundaries $\rightarrow$ `skills/planning-and-architecture/references/engineering-standards.md`
+  * Root cause checklist $\rightarrow$ `skills/systematic-debugging/references/root-cause-checklist.md`
+* Domain workflows link to these shared references rather than duplicating them.

@@ -1,99 +1,118 @@
-# Anchor Skills — Phased Implementation Roadmap
+# Skill Shelf — Evolution Roadmap
 
-This document outlines the disciplined, phased roadmap for building, organizing, and extending **Anchor Skills** as a modular, provider-independent skill library.
+This document outlines the strategic, phased evolution of **Skill Shelf** as the universal procedural brain for autonomous AI agents.
 
 ---
 
-## 1. Roadmap Overview
+## Roadmap Overview
 
 ```mermaid
-graph LR
-    P1[Phase 1: Resume + English Writing Skills] --> P2[Phase 2: Shared Skills & Overlays]
-    P2 --> P3[Phase 3: Provider Adapters]
-    P3 --> P4[Phase 4: Notion Brain Linking]
-    P4 --> P5[Phase 5: Capability Declarations]
-    P5 --> P6[Phase 6: Quality & Validation Rubrics]
-    P6 --> P7[Phase 7: Provenance & Metadata]
-    P7 --> P8[Phase 8: Emergency Medpack]
-    P8 --> P9[Phase 9: Additional Domain Skills]
-    P9 --> P10[Phase 10: Catalog Automation]
+flowchart LR
+    P1["Phase 1: Core Cognitive &<br/>Engineering Skills<br/>(ACTIVE)"]
+    P2["Phase 2: Multi-Agent<br/>MCP Wiring<br/>(PLANNED)"]
+    P3["Phase 3: Self-Evolving<br/>Skill Capture<br/>(FUTURE)"]
+
+    P1 --> P2 --> P3
 ```
 
 ---
 
-## 2. Phase-by-Phase Deliverables
+## Phase 1: Core Cognitive & Engineering Skills (Active Milestone)
 
-### Phase 1: Two-Skill Composition — English Writing & Resume Generator (Active Milestone)
-* **Objective**: Build the foundational independent reusable skill (`english-writing`) and the domain consumer skill (`resume-generator`), proving cross-skill composition and DRY without prompt duplication.
-* **Deliverables**:
-  * **Skill 1 (`skills/english-writing/`)**:
-    * `SKILL.md`: Behavioral operating guide with portable frontmatter, 4 modes, meaning invariants, and 5-tier priority hierarchy.
-    * `references/`: Modular references (`sentence-structure.md`, `verb-system.md`, `professional-writing.md`).
-    * `examples/`: Realistic before-and-after benchmark pairs.
-    * `tests/`: TDD pressure test scenarios (P01 to P05).
-  * **Skill 2 (`skills/resume-generator/`)**:
-    * `SKILL.md`: Master workflow referencing `english-writing` in Step 5 before finalizing text.
-    * `config.yaml`: Visual layout tokens (1-page 2-col default, 1-col override, typography, margins).
-    * `references/`: `jd-analysis.md`, `content.md`, `layout.md`, `validation.md`.
-    * `examples/`: Benchmark JD, candidate evidence, and 1-page output.
-    * `links/dependencies.md`: Pointer to `english-writing`.
+### Objective
+Establish the foundational procedural skill library, 2-tier progressive disclosure engine, repository governance, and automated validation tooling.
 
-### Phase 2: Shared Knowledge & External Skill Overlays
-* **Objective**: Establish the `shared/` library and prove that external skills can be customized via overlays without cloning or forking.
-* **Deliverables**:
-  * Shared engineering standards in `shared/engineering/` (`oop.md`, `solid.md`, `dry.md`).
-  * Shared writing standards in `shared/writing/` (`active-voice.md`, `conciseness.md`).
-  * Integration of `obra/superpowers` via personal overlays (`ADD`, `REPLACE`, `RESTRICT`, `PRIORITISE`).
+### 1. Cognitive Skills
+* **`skills/core-thinking/`**:
+  * First-principles decomposition: breaking complex ambiguity into fundamental truths.
+  * Explicit trade-off matrix: comparing architectural alternatives across cost, latency, complexity, and maintainability.
+  * Upfront failure modes analysis: identifying edge cases and breaking conditions before execution.
+  * High-signal, concise communication standards.
+  * Modular references: `references/mental-models.md`.
+* **`skills/brainstorm-and-validate/`**:
+  * 4-step wedge discovery framework: identifying high-leverage entry points.
+  * Competitor and ROI gate: objective feasibility and market differentiation rubrics.
+  * One-question-at-a-time interactive specification loop.
+  * Modular references: `references/discovery-framework.md`, `references/validation-rubric.md`.
+* **`skills/english-writing/` (Preserved Legacy Core)**:
+  * Reusable language engine providing 5 operational modes (Proofreading, Substantive Editing, Formatting, Executive Summary, Composition).
+  * Meaning and Claim Invariants: preventing hallucination and tone inflation.
+  * Deep references: sentence structure, verb system, professional writing, composition craft.
 
-### Phase 3: Provider Adapters & Portability
-* **Objective**: Package universal skills for distinct AI environments without modifying the underlying skill markdown.
-* **Deliverables**:
-  * Claude Adapter: Packaging skills for Claude Code / Desktop (`adapters/claude/`).
-  * Gemini Adapter: Packaging skills for Gemini / Antigravity (`adapters/gemini/`).
-  * OpenAI Adapter: Formatting skills for OpenAI Custom GPTs / Assistants (`adapters/openai/`).
+### 2. Engineering Skills
+* **`skills/planning-and-architecture/`**:
+  * SOLID principles and Clean Architecture boundaries.
+  * Thin controller pattern and isolated domain models.
+  * Architectural Decision Records (ADR) generation.
+  * Bite-sized, testable task plans specifying exact file paths and verification commands.
+  * Modular references & assets: `references/task-plan-template.md`, `references/engineering-standards.md`, `assets/adr-template.md`.
+* **`skills/systematic-debugging/`**:
+  * 4-phase root-cause tracing: Symptom Observation $\rightarrow$ Minimal Reproduction $\rightarrow$ Mechanism Tracing $\rightarrow$ Regression Defense.
+  * Strict evidence-before-hypothesis rule: no speculative code changes without reproducible proof.
+  * Modular references: `references/root-cause-checklist.md`.
+* **`skills/code-review/`**:
+  * Subagent diff review and change analysis.
+  * Severity triage system: Critical (blocking) vs. Important (must fix) vs. Minor (nitpicks).
+  * Red flags table: identifying anti-patterns, memory leaks, and concurrency hazards.
+  * Test execution verification: ensuring all assertions actively run and pass.
+  * Modular references: `references/review-rubric.md`.
 
-### Phase 4: Notion Brain Linking & Scoped Queries
-* **Objective**: Define formal prompt protocols for querying the user's existing Notion Brain with minimum context and strict visibility tiers.
-* **Deliverables**:
-  * Scoped retrieval guides (`identity.education`, `experience.backend`, `projects.relevant`).
-  * Enforcement of visibility boundaries (L0 Public, L1 Professional, L2 Private, L3 Restricted, L4 Retired).
-  * Zero ambient context leakage: prompt templates that request only task-relevant evidence.
+### 3. Governance & Repository Standard
+* **`INDEX.md`**: Master intent routing table directing user prompts to exact skill paths.
+* **`AGENTS.md`**: Universal repo rules enforcing the `agentskills.io` standard:
+  * Strict `<120 lines` limit for all new `SKILL.md` files.
+  * Mandatory `overrides.md` in every skill directory.
+  * Mandatory frontmatter schema (`name` matching directory, `description <= 1024 chars`).
+  * Zero personal secrets, API keys, or private bios in the repository.
+* **`README.md`**: Updated with the Dual-Brain USB-C model, repository structure, and quickstart.
 
-### Phase 5: Capability Declarations & Progressive Resolution
-* **Objective**: Standardize frontmatter capability schemas across all skills.
-* **Deliverables**:
-  * Standardized declarations: `memory: required/optional/forbidden`, `web: optional`, `tools: [filesystem, terminal]`.
-  * Instructions for AI fallback behavior when optional tools (e.g., web search) are unavailable.
+### 4. Tooling & Automation
+* **`scripts/validate_skills.py`**: Python standard library script validating YAML frontmatter, line counts, relative links, and `overrides.md` presence.
+* **`scripts/bundle_skills.py`**: Flattens skills (`SKILL.md` + `references/` + `overrides.md`) into single-file bundles in `dist/` for chat-only web/mobile interfaces.
+* **`scripts/sync.ps1` & `scripts/sync.sh`**: Cross-platform symlinking and copying utilities linking skills to `~/.gemini/skills`, `~/.claude/skills`, `~/.codex/skills`, and `~/.hermes/skills`.
 
-### Phase 6: Skill Quality & Validation Rubrics
-* **Objective**: Establish pre-flight verification rubrics that prevent AI output drift.
-* **Deliverables**:
-  * Deterministic validation checklists for each domain skill.
-  * Self-correction protocols: guiding the AI to audit its own output against constraints before presenting deliverables.
+---
 
-### Phase 7: Provenance & Artifact Metadata
-* **Objective**: Establish structured headers and provenance audit blocks for generated artifacts.
-* **Deliverables**:
-  * Provenance schemas: tracking which skill version, Notion evidence records, and layout configurations produced an artifact.
-  * Audit blocks: logging assumptions, omitted content, or unresolved conflicts.
+## Phase 2: Multi-Agent MCP Wiring
 
-### Phase 8: Emergency Medpack (Degraded Fallback)
-* **Objective**: Provide ultra-lightweight, zero-dependency emergency skills for mobile devices or restricted offline environments.
-* **Deliverables**:
-  * Single-file emergency skills requiring zero external references or tools.
-  * Graceful degradation paths that output clean Markdown when full layout formatting is unavailable.
+### Objective
+Wire the remote HTTP MCP zero-server architecture across all target agent environments, establish declarative Notion memory schemas, and enable multi-agent swarm collaboration.
 
-### Phase 9: Domain Skills Expansion
-* **Objective**: Expand the Anchor Skills library across professional and technical domains.
-* **Deliverables**:
-  * `skills/cover-letter/`: Paired companion to the Resume Skill (reusing `english-writing`).
-  * `skills/email-writing/`: Professional communication (reusing `english-writing`).
-  * `skills/linkedin-writer/`: Technical posts and profile summaries (reusing `english-writing`).
-  * `skills/hackathon-evaluator/`: Fast opportunity assessment and tech stack scoping.
-  * `skills/architecture-review/`: Systematic design critique applying shared OOP/SOLID principles.
+### Deliverables
+1. **Universal Remote HTTP MCP Integration**:
+   * Implement and verify remote MCP connections across Google Antigravity, Claude Code, Codex/OpenCode, and Hermes Agent.
+   * Enforce strict `enabledTools` allowlists (`["get_file_contents", "search_code"]`) on the GitHub read-only endpoint (`https://api.githubcopilot.com/mcp/readonly`).
+2. **Notion Declarative Memory Schemas**:
+   * Standardize structured database templates for Notion declarative memory (`https://mcp.notion.com/mcp`):
+     * **User Profile & Skills**: Core capabilities, career milestones, preferred coding conventions.
+     * **Project Ledger**: Active initiatives, technical stack requirements, operational constraints.
+     * **Architecture Decisions**: Centralized ADR log tracking technical trade-offs across systems.
+     * **Knowledge Vault**: Reading notes, domain heuristics, and empirical findings.
+   * Define standardized scoped query filters to eliminate ambient context leakage.
+3. **Cross-Agent Swarm Orchestration**:
+   * Establish protocols for multi-agent swarms (coordinators, authors, verifiers) sharing procedural skills via functional pointers.
+   * Standardize handoff contracts: agents pass artifacts and reference paths rather than dumping full conversation history.
+4. **Automated CI/CD & Skill Publishing**:
+   * GitHub Actions workflow running `scripts/validate_skills.py` and `scripts/bundle_skills.py` on every commit and pull request.
+   * Automated release tagging and artifact publishing for bundled skills.
 
-### Phase 10: Catalog Automation & Maintenance
-* **Objective**: Lightweight maintenance utilities for repository organization.
-* **Deliverables**:
-  * Automated index generator updating `README.md` from skill metadata.
-  * Broken link and dependency reference checker across markdown files.
+---
+
+## Phase 3: Self-Evolving Skill Capture
+
+### Objective
+Enable AI agents to automatically extract, validate, and publish new skills derived from real-world problem-solving sessions.
+
+### Deliverables
+1. **Autonomous Skill Extraction**:
+   * Agents detect breakthrough solutions during complex debugging or architectural tasks.
+   * Agent drafts a candidate `SKILL.md` following the 2-tier progressive disclosure model (<120 lines, modular references, `overrides.md`).
+2. **Automated Benchmark & Regression Suite**:
+   * Evaluate skill effectiveness across different LLMs (Gemini, Claude, GPT-4, Hermes) using standard benchmark prompts.
+   * Measure prompt adherence, token consumption, and hallucination reduction.
+3. **Dynamic Heuristic Refinement**:
+   * Track which reference heuristics are most frequently accessed and refine checklists to eliminate redundant steps.
+   * Incorporate post-mortem learnings directly into Tier 2 checklists.
+4. **Community & Marketplace Ecosystem**:
+   * Publish curated skills to the open `agentskills.io` directory.
+   * Package skills as Antigravity plugins and Claude skills bundles.
